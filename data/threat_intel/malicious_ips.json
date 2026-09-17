@@ -1,0 +1,29 @@
+{
+  "_comment": "Local, offline threat-intel feed used when no live API key is configured. Addresses are deliberately drawn from the IANA documentation ranges (RFC 5737: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24) so nothing here could be mistaken for a real-world address. Add your own entries, or point the app at a live feed via ABUSEIPDB_API_KEY.",
+  "entries": [
+    {
+      "ip": "198.51.100.23",
+      "reputation": "malicious",
+      "note": "Reported SSH/RDP brute-force botnet node (demo/sample data)",
+      "categories": ["brute-force", "botnet"]
+    },
+    {
+      "ip": "198.51.100.9",
+      "reputation": "malicious",
+      "note": "Known C2 checkin infrastructure (demo/sample data)",
+      "categories": ["c2"]
+    },
+    {
+      "ip": "203.0.113.201",
+      "reputation": "suspicious",
+      "note": "Multiple abuse reports for scanning activity in the last 30 days (demo/sample data)",
+      "categories": ["scanner"]
+    },
+    {
+      "ip": "203.0.113.14",
+      "reputation": "suspicious",
+      "note": "Tor exit node (demo/sample data)",
+      "categories": ["anonymizer", "tor-exit"]
+    }
+  ]
+}

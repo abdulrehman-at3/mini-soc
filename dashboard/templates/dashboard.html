@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Mini-SOC{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>Security Dashboard</h1>
+    <div class="subtitle">Detection &rarr; Alert &rarr; Investigation &rarr; Response &rarr; Reporting</div>
+  </div>
+  <div class="topbar-actions">
+    <form method="post" action="{{ url_for('pipeline_simulate') }}" class="inline btn-group">
+      <select name="attack_type" style="height:34px;">
+        {% for a in attack_types %}<option value="{{ a }}">{{ a.replace('_',' ') }}</option>{% endfor %}
+      </select>
+      <button class="btn" type="submit">Simulate attack</button>
+    </form>
+    <form method="post" action="{{ url_for('pipeline_run') }}" class="inline">
+      <button class="btn btn-primary" type="submit">Run detection</button>
+    </form>
+  </div>
+</div>
+
+<div class="grid grid-4" style="margin-bottom:18px;">
+  <div class="stat-tile">
+    <div class="label">Total events</div>
+    <div class="value">{{ stats.total_events }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="label">Open alerts</div>
+    <div class="value">{{ stats.open_alerts }}</div>
+  </div>
+  <div class="stat-tile accent-critical">
+    <div class="label">Critical (open)</div>
+    <div class="value">{% if stats.critical_alerts_open %}<span class="pulse-dot"></span>{% endif %}{{ stats.critical_alerts_open }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="label">Open incidents</div>
+    <div class="value">{{ stats.open_incidents }}</div>
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-bottom:18px;">
+  <div class="panel">
+    <h2>Event volume — last 48h</h2>
+    <div class="chart-wrap"><canvas id="chart-timeline"></canvas></div>
+  </div>
+  <div class="panel">
+    <h2>Alerts by severity</h2>
+    <div class="chart-wrap"><canvas id="chart-severity"></canvas></div>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="panel">
+    <h2>Recent alerts</h2>
+    {% if recent_alerts %}
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Severity</th><th>Alert</th><th>Source</th><th>Status</th><th>When</th></tr></thead>
+      <tbody>
+      {% for a in recent_alerts %}
+        <tr class="clickable" onclick="location.href='{{ url_for('alert_detail', alert_id=a.id) }}'">
+          <td><span class="badge sev-{{ a.severity }}">{{ a.severity }}</span></td>
+          <td>{{ a.title }}</td>
+          <td class="mono">{{ a.source_ip or a.user or '—' }}</td>
+          <td><span class="badge {{ a.status|statusclass }}">{{ a.status }}</span></td>
+          <td class="muted text-sm">{{ a.created_at|timeago }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="empty-state">No alerts yet. Click "Run detection" once you've ingested some logs.</div>
+    {% endif %}
+    <div style="margin-top:12px;"><a class="btn btn-sm" href="{{ url_for('alerts_list') }}">View all alerts &rarr;</a></div>
+  </div>
+
+  <div class="panel">
+    <h2>Top source IPs</h2>
+    {% if top_ips %}
+    <table>
+      <tbody>
+      {% for row in top_ips %}
+        <tr class="clickable" onclick="location.href='{{ url_for('investigate', q=row.key) }}'">
+          <td class="mono">{{ row.key }}</td>
+          <td style="text-align:right;" class="muted">{{ row.c }} events</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No events yet.</div>
+    {% endif %}
+
+    <h2 style="margin-top:20px;">Platform workflow</h2>
+    <div class="stepper">
+      <div class="step done">Detection</div>
+      <div class="step done">Alert</div>
+      <div class="step current">Investigation</div>
+      <div class="step">Response</div>
+      <div class="step">Reporting</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

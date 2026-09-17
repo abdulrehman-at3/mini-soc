@@ -1,0 +1,11 @@
+{% if page_info.total_pages > 1 %}
+<div class="pagination">
+  {% if page_info.has_prev %}
+    <a class="btn btn-sm" href="{{ url_for(request.endpoint, page=page_info.page-1, **base_args) }}">&larr; Prev</a>
+  {% endif %}
+  <span>Page {{ page_info.page }} of {{ page_info.total_pages }} &middot; {{ page_info.total }} total</span>
+  {% if page_info.has_next %}
+    <a class="btn btn-sm" href="{{ url_for(request.endpoint, page=page_info.page+1, **base_args) }}">Next &rarr;</a>
+  {% endif %}
+</div>
+{% endif %}

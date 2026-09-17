@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Search — Mini-SOC{% endblock %}
+{% block content %}
+<div class="topbar"><h1>Log search</h1><div class="subtitle">{{ page_info.total }} matching events</div></div>
+
+<div class="panel">
+  <form method="get" class="form-row">
+    <div class="field"><label>Source IP</label><input type="text" name="ip" value="{{ filters.source_ip }}"></div>
+    <div class="field"><label>User</label><input type="text" name="user" value="{{ filters.user }}"></div>
+    <div class="field">
+      <label>Host</label>
+      <select name="host">
+        <option value="">All</option>
+        {% for h in hosts %}<option value="{{ h }}" {{ 'selected' if filters.host == h }}>{{ h }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Event type</label>
+      <select name="type">
+        <option value="">All</option>
+        {% for t in event_types %}<option value="{{ t }}" {{ 'selected' if filters.event_type == t }}>{{ t }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field" style="flex:2;"><label>Keyword</label><input type="text" name="q" value="{{ filters.keyword }}" placeholder="search descriptions and raw log text" style="width:100%"></div>
+    <div class="field"><button class="btn btn-primary" type="submit">Search</button></div>
+    <div class="field"><a class="btn" href="{{ url_for('search_page') }}">Clear</a></div>
+  </form>
+</div>
+
+<div class="panel">
+  {% if results %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Timestamp</th><th>Type</th><th>Source IP</th><th>User</th><th>Host</th><th>Description</th><th></th></tr></thead>
+    <tbody>
+    {% for e in results %}
+      <tr>
+        <td class="mono text-sm">{{ e.timestamp }}</td>
+        <td>{{ e.event_type }}</td>
+        <td class="mono"><a href="{{ url_for('investigate', q=e.source_ip) }}">{{ e.source_ip }}</a>{% if not e.source_ip %}—{% endif %}</td>
+        <td class="mono">{{ e.user or "—" }}</td>
+        <td>{{ e.host }}</td>
+        <td class="text-sm">{{ e.description }}</td>
+        <td><details><summary class="text-sm muted" style="cursor:pointer;">raw</summary><div class="raw-log">{{ e.raw_text }}</div></details></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% set base_args = {'ip': filters.source_ip, 'user': filters.user, 'host': filters.host, 'type': filters.event_type, 'q': filters.keyword} %}
+  {% include "_pagination.html" %}
+  {% else %}
+  <div class="empty-state">No events match these filters.</div>
+  {% endif %}
+</div>
+{% endblock %}

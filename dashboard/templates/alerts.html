@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Alerts — Mini-SOC{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1>Alerts</h1><div class="subtitle">{{ page_info.total }} total</div></div>
+</div>
+
+<div class="panel">
+  <form method="get" class="form-row">
+    <div class="field">
+      <label>Severity</label>
+      <select name="severity">
+        <option value="">All</option>
+        {% for s in ["CRITICAL","HIGH","MEDIUM","LOW"] %}
+        <option value="{{ s }}" {{ 'selected' if severity == s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select name="status">
+        <option value="">All</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field" style="flex:2;">
+      <label>Keyword</label>
+      <input type="text" name="q" value="{{ q }}" placeholder="title, description, IP, user..." style="width:100%">
+    </div>
+    <div class="field"><button class="btn btn-primary" type="submit">Filter</button></div>
+    {% if severity or status or q %}<div class="field"><a class="btn" href="{{ url_for('alerts_list') }}">Clear</a></div>{% endif %}
+  </form>
+</div>
+
+<div class="panel">
+  {% if alerts %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Severity</th><th>Alert</th><th>Rule</th><th>Source</th><th>Status</th><th>Events</th><th>Last seen</th></tr></thead>
+    <tbody>
+    {% for a in alerts %}
+      <tr class="clickable" onclick="location.href='{{ url_for('alert_detail', alert_id=a.id) }}'">
+        <td><span class="badge sev-{{ a.severity }}">{{ a.severity }}</span></td>
+        <td>#{{ a.id }} {{ a.title }}</td>
+        <td class="mono muted text-sm">{{ a.rule_name }}</td>
+        <td class="mono">{{ a.source_ip or a.user or '—' }}</td>
+        <td><span class="badge {{ a.status|statusclass }}">{{ a.status }}</span></td>
+        <td>{{ a.event_count }}</td>
+        <td class="muted text-sm">{{ a.last_event_at|timeago }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% set base_args = {'severity': severity, 'status': status, 'q': q} %}
+  {% include "_pagination.html" %}
+  {% else %}
+  <div class="empty-state">No alerts match these filters.</div>
+  {% endif %}
+</div>
+{% endblock %}

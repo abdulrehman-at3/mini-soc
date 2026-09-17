@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}New incident — Mini-SOC{% endblock %}
+{% block content %}
+<div class="topbar"><h1>New incident</h1></div>
+<div class="panel" style="max-width:560px;">
+  <form method="post">
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" name="title" required style="width:100%">
+    </div>
+    <div class="field">
+      <label for="severity">Severity</label>
+      <select id="severity" name="severity" style="width:100%">
+        <option value="LOW">LOW</option>
+        <option value="MEDIUM" selected>MEDIUM</option>
+        <option value="HIGH">HIGH</option>
+        <option value="CRITICAL">CRITICAL</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="6" style="width:100%">{% if alert_id %}Opened manually to track investigation of alert #{{ alert_id }}.{% endif %}</textarea>
+    </div>
+    <button class="btn btn-primary" type="submit">Create incident</button>
+    <a class="btn" href="{{ url_for('incidents_list') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

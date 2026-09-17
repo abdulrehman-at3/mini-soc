@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Investigate — Mini-SOC{% endblock %}
+{% block content %}
+<div class="topbar"><h1>Investigate</h1><div class="subtitle">Look up an IP address or domain</div></div>
+
+<div class="panel">
+  <form method="get" class="form-row">
+    <div class="field" style="flex:2;">
+      <label>IP address or domain</label>
+      <input type="text" name="q" value="{{ query }}" placeholder="e.g. 192.168.1.50 or example.com" style="width:100%" autofocus>
+    </div>
+    <div class="field"><button class="btn btn-primary" type="submit">Investigate</button></div>
+  </form>
+</div>
+
+{% if query and not result %}
+<div class="panel"><div class="empty-state">No data found for "{{ query }}".</div></div>
+{% endif %}
+
+{% if result and result.kind == 'ip' %}
+  <div class="grid grid-4" style="margin-bottom:18px;">
+    <div class="stat-tile {{ 'accent-critical' if result.risk_score >= 50 }}">
+      <div class="label">Risk score</div>
+      <div class="value">{{ result.risk_score }}<span class="muted text-sm">/100</span></div>
+    </div>
+    <div class="stat-tile">
+      <div class="label">Reputation</div>
+      <div class="value" style="font-size:16px; margin-top:10px;">
+        <span class="badge sev-{{ 'CRITICAL' if result.threat_intel.reputation == 'malicious' else ('HIGH' if result.threat_intel.reputation == 'suspicious' else 'LOW') }}">{{ result.threat_intel.reputation | upper }}</span>
+      </div>
+    </div>
+    <div class="stat-tile">
+      <div class="label">Related alerts</div>
+      <div class="value">{{ result.alerts|length }}</div>
+    </div>
+    <div class="stat-tile">
+      <div class="label">Total events</div>
+      <div class="value">{{ result.events|length }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="panel">
+      <h2>Overview &middot; <span class="mono">{{ result.ip }}</span></h2>
+      <dl class="detail-grid">
+        <dt>Source</dt><dd>{{ result.threat_intel.source }}</dd>
+        {% if result.threat_intel.details.note %}<dt>Note</dt><dd style="font-family:inherit;">{{ result.threat_intel.details.note }}</dd>{% endif %}
+        <dt>First seen</dt><dd>{{ result.first_seen or "—" }}</dd>
+        <dt>Last seen</dt><dd>{{ result.last_seen or "—" }}</dd>
+        <dt>User accounts</dt><dd style="font-family:inherit;">{{ result.distinct_users|join(", ") or "—" }}</dd>
+        <dt>Hosts touched</dt><dd style="font-family:inherit;">{{ result.distinct_hosts|join(", ") or "—" }}</dd>
+      </dl>
+    </div>
+    <div class="panel">
+      <h2>Related alerts</h2>
+      {% if result.alerts %}
+      <table>
+        <tbody>
+        {% for a in result.alerts %}
+        <tr class="clickable" onclick="location.href='{{ url_for('alert_detail', alert_id=a.id) }}'">
+          <td><span class="badge sev-{{ a.severity }}">{{ a.severity }}</span></td>
+          <td>{{ a.title }}</td>
+          <td><span class="badge {{ a.status|statusclass }}">{{ a.status }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">No alerts reference this IP.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Recent events from this IP</h2>
+    <div class="table-wrap" style="max-height:400px; overflow-y:auto;">
+    <table>
+      <thead><tr><th>Timestamp</th><th>Type</th><th>User</th><th>Host</th><th>Description</th></tr></thead>
+      <tbody>
+      {% for e in result.events %}
+        <tr>
+          <td class="mono text-sm">{{ e.timestamp }}</td>
+          <td>{{ e.event_type }}</td>
+          <td class="mono">{{ e.user or "—" }}</td>
+          <td>{{ e.host }}</td>
+          <td class="text-sm">{{ e.description }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+{% elif result and result.kind == 'domain' %}
+  <div class="panel">
+    <h2>Domain &middot; <span class="mono">{{ result.domain }}</span></h2>
+    {% if result.resolved_ip %}
+      <p>Resolved to <span class="mono">{{ result.resolved_ip }}</span>.</p>
+      <a class="btn btn-primary" href="{{ url_for('investigate', q=result.resolved_ip) }}">Investigate this IP &rarr;</a>
+    {% else %}
+      <div class="empty-state">Could not resolve this domain{% if result.error %} ({{ result.error }}){% endif %}. This requires outbound DNS from the machine running the dashboard.</div>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

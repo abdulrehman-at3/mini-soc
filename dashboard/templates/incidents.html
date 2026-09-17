@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Incidents — Mini-SOC{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div><h1>Incidents</h1><div class="subtitle">{{ page_info.total }} total</div></div>
+  <div class="topbar-actions"><a class="btn btn-primary" href="{{ url_for('incident_new') }}">New incident</a></div>
+</div>
+
+<div class="panel">
+  <form method="get" class="form-row">
+    <div class="field">
+      <label>Severity</label>
+      <select name="severity">
+        <option value="">All</option>
+        {% for s in ["CRITICAL","HIGH","MEDIUM","LOW"] %}
+        <option value="{{ s }}" {{ 'selected' if severity == s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select name="status">
+        <option value="">All</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field"><button class="btn btn-primary" type="submit">Filter</button></div>
+    {% if severity or status %}<div class="field"><a class="btn" href="{{ url_for('incidents_list') }}">Clear</a></div>{% endif %}
+  </form>
+</div>
+
+<div class="panel">
+  {% if incidents %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Severity</th><th>Incident</th><th>Status</th><th>Assigned to</th><th>Opened</th></tr></thead>
+    <tbody>
+    {% for i in incidents %}
+      <tr class="clickable" onclick="location.href='{{ url_for('incident_detail', incident_id=i.id) }}'">
+        <td><span class="badge sev-{{ i.severity }}">{{ i.severity }}</span></td>
+        <td>#{{ i.id }} {{ i.title }}</td>
+        <td><span class="badge {{ i.status|statusclass }}">{{ i.status }}</span></td>
+        <td>{{ i.assigned_to or "Unassigned" }}</td>
+        <td class="muted text-sm">{{ i.created_at|timeago }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% set base_args = {'severity': severity, 'status': status} %}
+  {% include "_pagination.html" %}
+  {% else %}
+  <div class="empty-state">No incidents match these filters.</div>
+  {% endif %}
+</div>
+{% endblock %}

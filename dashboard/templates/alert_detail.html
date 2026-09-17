@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Alert #{{ alert.id }} — Mini-SOC{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="kicker">Alert #{{ alert.id }} &middot; {{ alert.rule_name }}</div>
+    <h1><span class="badge sev-{{ alert.severity }}">{{ alert.severity }}</span> &nbsp;{{ alert.title }}</h1>
+  </div>
+  <div class="topbar-actions">
+    {% if incident %}
+      <a class="btn" href="{{ url_for('incident_detail', incident_id=incident.id) }}">View incident #{{ incident.id }} &rarr;</a>
+    {% else %}
+      <form method="post" action="{{ url_for('alert_create_incident', alert_id=alert.id) }}" class="inline">
+        <button class="btn btn-primary" type="submit">Open incident</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="panel">
+    <h2>Details</h2>
+    <dl class="detail-grid">
+      <dt>Status</dt><dd><span class="badge {{ alert.status|statusclass }}">{{ alert.status }}</span></dd>
+      <dt>Source IP</dt><dd>{% if alert.source_ip %}<a href="{{ url_for('investigate', q=alert.source_ip) }}">{{ alert.source_ip }}</a>{% else %}—{% endif %}</dd>
+      <dt>User</dt><dd>{{ alert.user or "—" }}</dd>
+      <dt>Host</dt><dd>{{ alert.host or "—" }}</dd>
+      <dt>Event count</dt><dd>{{ alert.event_count }}</dd>
+      <dt>First seen</dt><dd>{{ alert.first_event_at }}</dd>
+      <dt>Last seen</dt><dd>{{ alert.last_event_at }}</dd>
+      <dt>Created</dt><dd>{{ alert.created_at }}</dd>
+    </dl>
+    <hr class="hairline">
+    <p>{{ alert.description }}</p>
+
+    <form method="post" action="{{ url_for('alert_update_status', alert_id=alert.id) }}" class="form-row">
+      <div class="field">
+        <label>Change status</label>
+        <select name="status">
+          {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == alert.status }}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field"><button class="btn" type="submit">Update</button></div>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h2>Threat intelligence{% if alert.source_ip %} &middot; <span class="mono text-sm muted">{{ alert.source_ip }}</span>{% endif %}</h2>
+    {% if threat_intel %}
+      <dl class="detail-grid">
+        <dt>Reputation</dt>
+        <dd><span class="badge sev-{{ 'CRITICAL' if threat_intel.reputation == 'malicious' else ('HIGH' if threat_intel.reputation == 'suspicious' else 'LOW') }}">{{ threat_intel.reputation | upper }}</span></dd>
+        <dt>Source</dt><dd>{{ threat_intel.source }}</dd>
+        {% if threat_intel.details.note %}<dt>Note</dt><dd style="font-family:inherit;">{{ threat_intel.details.note }}</dd>{% endif %}
+      </dl>
+      <div style="margin-top:10px;"><a class="btn btn-sm" href="{{ url_for('investigate', q=alert.source_ip) }}">Full investigation &rarr;</a></div>
+    {% else %}
+      <div class="empty-state">No source IP associated with this alert.</div>
+    {% endif %}
+
+    <h2 style="margin-top:20px;">Recommended remediation</h2>
+    <ul class="text-sm" style="padding-left:18px; margin:0;">
+      {% for step in remediation_hints.get(alert.rule_name, remediation_hints['_default']) %}
+        <li style="margin-bottom:6px;">{{ step }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Linked events ({{ events|length }})</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Timestamp</th><th>Type</th><th>Source IP</th><th>User</th><th>Host</th><th>Description</th></tr></thead>
+    <tbody>
+    {% for e in events %}
+      <tr>
+        <td class="mono text-sm">{{ e.timestamp }}</td>
+        <td>{{ e.event_type }}</td>
+        <td class="mono">{{ e.source_ip or "—" }}</td>
+        <td class="mono">{{ e.user or "—" }}</td>
+        <td>{{ e.host }}</td>
+        <td class="text-sm">{{ e.description }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

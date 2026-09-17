@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Mini-SOC{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if logged_in_user %}
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot"></span>Mini-<span class="mono">SOC</span></div>
+    <nav class="nav">
+      <a href="{{ url_for('dashboard_home') }}" class="{{ 'active' if request.endpoint == 'dashboard_home' }}"><span class="icon">DB</span> Dashboard</a>
+      <a href="{{ url_for('alerts_list') }}" class="{{ 'active' if request.endpoint in ('alerts_list','alert_detail') }}"><span class="icon">AL</span> Alerts</a>
+      <a href="{{ url_for('incidents_list') }}" class="{{ 'active' if request.endpoint in ('incidents_list','incident_detail','incident_new') }}"><span class="icon">IN</span> Incidents</a>
+      <a href="{{ url_for('investigate') }}" class="{{ 'active' if request.endpoint == 'investigate' }}"><span class="icon">IV</span> Investigate</a>
+      <a href="{{ url_for('search_page') }}" class="{{ 'active' if request.endpoint == 'search_page' }}"><span class="icon">SR</span> Search</a>
+      <a href="{{ url_for('reports_list') }}" class="{{ 'active' if request.endpoint in ('reports_list','report_incident_view') }}"><span class="icon">RP</span> Reports</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="who">Signed in as<br><span class="mono">{{ logged_in_user.username }}</span></div>
+      <a href="{{ url_for('logout') }}">Log out</a>
+    </div>
+  </aside>
+  <main class="main">
+    {% include "_flash.html" %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% block auth_content %}{% endblock %}
+{% endif %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

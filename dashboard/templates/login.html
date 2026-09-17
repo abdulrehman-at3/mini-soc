@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Log in — Mini-SOC{% endblock %}
+{% block auth_content %}
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="brand"><span class="dot"></span>Mini-<span class="mono">SOC</span></div>
+    {% include "_flash.html" %}
+    <form method="post">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" autocomplete="username" autofocus required style="width:100%">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required style="width:100%">
+      </div>
+      <button class="btn btn-primary" type="submit">Log in</button>
+    </form>
+    <p class="hint">Security Monitoring &amp; Incident Detection Platform</p>
+  </div>
+</div>
+{% endblock %}

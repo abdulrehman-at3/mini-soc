@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Incident #{{ incident.id }} — Mini-SOC{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="kicker">Incident #{{ incident.id }}</div>
+    <h1><span class="badge sev-{{ incident.severity }}">{{ incident.severity }}</span> &nbsp;{{ incident.title }}</h1>
+  </div>
+  <div class="topbar-actions">
+    <form method="post" action="{{ url_for('report_incident_generate', incident_id=incident.id) }}" class="inline">
+      <button class="btn btn-primary" type="submit">Generate report</button>
+    </form>
+    <a class="btn" href="{{ url_for('report_incident_view', incident_id=incident.id) }}" target="_blank">Preview report</a>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="panel">
+    <h2>Details</h2>
+    <dl class="detail-grid">
+      <dt>Status</dt><dd><span class="badge {{ incident.status|statusclass }}">{{ incident.status }}</span></dd>
+      <dt>Assigned to</dt><dd>{{ incident.assigned_to or "Unassigned" }}</dd>
+      <dt>Opened</dt><dd>{{ incident.created_at }}</dd>
+      <dt>Closed</dt><dd>{{ incident.closed_at or "—" }}</dd>
+      {% if incident.resolution %}<dt>Resolution</dt><dd style="font-family:inherit;">{{ incident.resolution }}</dd>{% endif %}
+    </dl>
+    <hr class="hairline">
+    <p style="white-space:pre-wrap;">{{ incident.description }}</p>
+
+    <form method="post" action="{{ url_for('incident_update_status', incident_id=incident.id) }}">
+      <div class="form-row">
+        <div class="field">
+          <label>Change status</label>
+          <select name="status">
+            {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == incident.status }}>{{ s }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Resolution notes (required when closing/resolving)</label>
+        <textarea name="resolution" rows="2" style="width:100%" placeholder="What happened, and what was done about it?"></textarea>
+      </div>
+      <button class="btn" type="submit">Update status</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h2>Analyst notes</h2>
+    <div style="max-height:320px; overflow-y:auto; margin-bottom:12px;">
+    {% if incident.notes %}
+      {% for n in incident.notes %}
+      <div class="note-item">
+        <div class="meta">{{ n.created_at }} &middot; {{ n.author }}</div>
+        <div>{{ n.note }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No notes yet.</div>
+    {% endif %}
+    </div>
+    <form method="post" action="{{ url_for('incident_add_note', incident_id=incident.id) }}">
+      <div class="field">
+        <textarea name="note" rows="3" style="width:100%" placeholder="Add an investigation note..." required></textarea>
+      </div>
+      <button class="btn btn-primary" type="submit">Add note</button>
+    </form>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Linked alerts ({{ incident.alerts|length }})</h2>
+  {% if incident.alerts %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Severity</th><th>Alert</th><th>Rule</th><th>Source</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for a in incident.alerts %}
+      <tr class="clickable" onclick="location.href='{{ url_for('alert_detail', alert_id=a.id) }}'">
+        <td><span class="badge sev-{{ a.severity }}">{{ a.severity }}</span></td>
+        <td>#{{ a.id }} {{ a.title }}</td>
+        <td class="mono muted text-sm">{{ a.rule_name }}</td>
+        <td class="mono">{{ a.source_ip or a.user or '—' }}</td>
+        <td><span class="badge {{ a.status|statusclass }}">{{ a.status }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="empty-state">No alerts linked.</div>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Event timeline ({{ incident.events|length }})</h2>
+  <div class="table-wrap" style="max-height:420px; overflow-y:auto;">
+  <table>
+    <thead><tr><th>Timestamp</th><th>Type</th><th>Source IP</th><th>User</th><th>Host</th><th>Description</th></tr></thead>
+    <tbody>
+    {% for e in incident.events %}
+      <tr>
+        <td class="mono text-sm">{{ e.timestamp }}</td>
+        <td>{{ e.event_type }}</td>
+        <td class="mono">{{ e.source_ip or "—" }}</td>
+        <td class="mono">{{ e.user or "—" }}</td>
+        <td>{{ e.host }}</td>
+        <td class="text-sm">{{ e.description }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

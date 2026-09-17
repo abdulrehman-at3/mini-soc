@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Reports — Mini-SOC{% endblock %}
+{% block content %}
+<div class="topbar"><h1>Reports</h1><div class="subtitle">Incident reports and SOC summaries</div></div>
+
+<div class="grid grid-2">
+  <div class="panel">
+    <h2>Generate a report for an incident</h2>
+    {% if incidents %}
+    <table>
+      <thead><tr><th>Incident</th><th>Severity</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for i in incidents %}
+        <tr>
+          <td>#{{ i.id }} {{ i.title }}</td>
+          <td><span class="badge sev-{{ i.severity }}">{{ i.severity }}</span></td>
+          <td><span class="badge {{ i.status|statusclass }}">{{ i.status }}</span></td>
+          <td class="btn-group">
+            <form method="post" action="{{ url_for('report_incident_generate', incident_id=i.id) }}" class="inline">
+              <button class="btn btn-sm" type="submit">Generate</button>
+            </form>
+            <a class="btn btn-sm" href="{{ url_for('report_incident_view', incident_id=i.id) }}" target="_blank">Preview</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No incidents yet — reports are generated per-incident.</div>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>SOC summary report</h2>
+    <p class="text-sm muted">A rolled-up overview of events, alerts, and incidents over a time window — useful for shift handoff or a weekly review.</p>
+    <form method="post" action="{{ url_for('report_summary_generate') }}" class="form-row">
+      <div class="field">
+        <label>Look back (days)</label>
+        <input type="number" name="days" value="7" min="1" max="90" style="width:90px;">
+      </div>
+      <div class="field"><button class="btn btn-primary" type="submit">Generate summary</button></div>
+    </form>
+
+    <h2 style="margin-top:22px;">Generated files</h2>
+    {% if files %}
+    <table>
+      <tbody>
+      {% for f in files %}
+        <tr>
+          <td class="mono text-sm">{{ f.name }}</td>
+          <td style="text-align:right;"><a class="btn btn-sm" href="{{ url_for('report_download', filename=f.name) }}">Download</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No reports generated yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

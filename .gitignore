@@ -1,0 +1,21 @@
+# Generated data (regenerate with `python cli.py demo`)
+data/soc.db
+data/sample_logs/*.log
+data/sample_logs/*.jsonl
+data/reports/*
+!data/reports/.gitkeep
+
+# Secrets
+dashboard/.secret_key
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# OS
+.DS_Store

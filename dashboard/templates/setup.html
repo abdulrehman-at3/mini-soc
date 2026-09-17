@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Set up your account — Mini-SOC{% endblock %}
+{% block auth_content %}
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="brand"><span class="dot"></span>Mini-<span class="mono">SOC</span></div>
+    <p class="text-sm muted" style="margin-top:-10px; text-align:center;">No analyst accounts exist yet. Create the first one to continue — there is no default login.</p>
+    {% include "_flash.html" %}
+    <form method="post">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" autocomplete="username" autofocus required style="width:100%">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8" style="width:100%">
+      </div>
+      <div class="field">
+        <label for="confirm">Confirm password</label>
+        <input id="confirm" name="confirm" type="password" autocomplete="new-password" required minlength="8" style="width:100%">
+      </div>
+      <button class="btn btn-primary" type="submit">Create account</button>
+    </form>
+    <p class="hint">Minimum 8 characters. You can also run <code>python cli.py create-user</code> from the terminal.</p>
+  </div>
+</div>
+{% endblock %}
